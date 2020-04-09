@@ -4,12 +4,12 @@
 # AC is the same as CA
 # Skip AA, CC etc.
 # Also print out how many combinations there are
-s = 'ACDEFGHIKLMNPQRSTVWY'
+aa = 'ACDEFGHIKLMNPQRSTVWY'
 
 count=0
-for i in range(len(s)):
-    for j in range(i+1, len(s)):
-        print(s[i],s[j])
+for i in range(len(aa)):
+    for j in range(i+1, len(aa)):
+        print(aa[i],aa[j])
         count+=1
 print(count)
 
