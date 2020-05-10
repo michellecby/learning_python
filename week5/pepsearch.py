@@ -37,9 +37,22 @@ def read_fasta(filename):
 protein_file = sys.argv[1]
 pattern = sys.argv[2]
 
+
 for name, seq in read_fasta(protein_file):
 	if pattern in seq:
 		print(seq)
+
+longest = None
+shortest = None
+for name, seq in read_fasta(protein_file):
+	#break
+	if longest == None:       longest = len(seq)
+	elif len(seq) > longest:  longest = len(seq)
+	if shortest == None:      shortest = len(seq)
+	elif len(seq) < shortest: shortest = len(seq)
+
+print(longest, shortest)
+
 """
 python3 pepsearch.py proteins.fasta.gz IAN | wc -w
 	43
