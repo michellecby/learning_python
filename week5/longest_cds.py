@@ -9,8 +9,7 @@ import sys
 # Check both strands
 # Command line:
 #	python3 longest_cds.py transcripts.fasta.gz
-# Output:
-#	Gene_name seq_length cds_start cds_length
+
 
 def read_fasta(filename):
 	name = None
@@ -44,14 +43,14 @@ def translation(sequence):
 	for i in range(0, len(sequence)-3+1, 3):
 		codon = sequence[i:i+3]
 		if codon == 'ATG':
-			aa.apend('M')
+			aa.append('M')
 		elif codon == 'TTT' or codon == 'TTC':
 			aa.append('F')
 		elif codon == 'TTA' or codon == 'TTG':
 			aa.append('L')
 		elif codon == 'CTT' or codon == 'CTC' or codon == 'CTA' or codon == 'CTG':
-			aa.apend('L')
-		elif codon == 'ATT' or codn == 'ATC' or codon == 'ATA':
+			aa.append('L')
+		elif codon == 'ATT' or codon == 'ATC' or codon == 'ATA':
 			aa.append('I')
 		elif codon == 'GTT' or codon == 'GTC' or codon == 'GTA' or codon == 'GTG':
 			aa.append('V')
@@ -95,33 +94,35 @@ def translation(sequence):
 protein_file = sys.argv[1]
 
 def orfseq(sequence):
-	orfs = []
-	for f in range(3):
-		atgs = []
-		for i in range(f, len(seq)-f-2, 3):
-			codon = seq[i:i+3]
-			if codon == 'ATG':
-				atgs.append(i)
-		for start in atgs:
-			stop = None
-			orf_len = 0
-			for i in range(start, len(seq)-f-2, 3):
-				codon = seq[i:i+3]
-				if codon == 'TAA' or codon == 'TAG' or codon == 'TGA':
-					stop = i + 2
-					break
-				print(stop)
-				orf = stop - start + 1
-				if orf_len < orf:
-					orf_len = orf
-					orfs.append(seq[start:stop + 1])
-
-
-	return ''.join(orfs)
+	cds = None
+	max_len = 0
+	# find all ATG
+	atgs=[]
+	for i in range(len(sequence)-2):
+		codon = sequence[i:i+3]
+		if codon == "ATG":
+			atgs.append(i)
+	# for every ATG
+	for atg in atgs:
+		#find closest stop
+		#stop = None
+		for i in range(atg, len(sequence), 3):
+			codon = sequence[i:i+3]
+			if codon == "TAA" or codon == "TGA" or codon == "TAG":
+				stop = i
+				orf = stop - atg + 1
+				if orf > max_len:
+					max_len = orf
+					cds = sequence[atg:stop+3]
+				break
+	return cds
+		# record the len
+		#if stop != None:
 
 for name, seq in read_fasta(protein_file):
-	print(f'> {name}')
-	#print(translation(orfseq(seq)))
+	print(f'>{name}')
+	print(translation(orfseq(seq)))
+
 """
 >CBG00001.1
 MTFCENKNLPKPPSDRCQVVVISILSMILDFYLKYNPDKHWAHLFYGASPILEILVIFGMLANSVYGNKLAMFACVLDLVSGVFCLLTLPVISVAENATGVRLHLPYISTFHSQFSFQVSTPVDLFYVATFLGFVSTILILLFLILDALKFMKLRKLRNEDLEKEKKMNPIEKV*
