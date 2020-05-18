@@ -87,7 +87,12 @@ line = '1,2,3'
 csv = line.split(',') # comma separated values
 print(csv) # note the quotes, the numeric values are actually strings
 
+
+# If you want to split every letter of a string, use list()
+
 # To convert from lists to strings, use join()
+letters = list('ACGT')
+print(letters)
 
 seq = ['G', 'A', 'A', 'T', 'T', 'C']
 s = ''.join(seq)
