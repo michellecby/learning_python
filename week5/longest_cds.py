@@ -54,7 +54,7 @@ def translation(sequence):
 			aa.append('I')
 		elif codon == 'GTT' or codon == 'GTC' or codon == 'GTA' or codon == 'GTG':
 			aa.append('V')
-		elif codon == 'TCT' or codon == 'TCC' or codon == 'TCA' or codon == 'TGG':
+		elif codon == 'TCT' or codon == 'TCC' or codon == 'TCA' or codon == 'TCG':
 			aa.append('S')
 		elif codon == 'CCT' or codon == 'CCC' or codon == 'CCA' or codon == 'CCG':
 			aa.append('P')
@@ -64,7 +64,7 @@ def translation(sequence):
 			aa.append('A')
 		elif codon == 'TAT' or codon == 'TAC':
 			aa.append('Y')
-		elif codon == 'CAU' or codon == 'CAC':
+		elif codon == 'CAT' or codon == 'CAC':
 			aa.append('H')
 		elif codon == 'CAA' or codon == 'CAG':
 			aa.append('Q')
