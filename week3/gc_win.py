@@ -7,7 +7,7 @@
 
 seq = 'ACGACGCAGGAGGAGAGTTTCAGAGATCACGAATACATCCATATTACCCAGAGAGAG'
 w = 11
-
+"""
 for i in range(len(seq)-w+1):
     kmer = seq[i:i+w]
     s_count = 0
@@ -16,7 +16,17 @@ for i in range(len(seq)-w+1):
             s_count +=1
         s_frac = s_count/len(kmer)
     print(f'{i} {kmer} {s_frac:.4f}')
+"""
+def gc(seq):
+    s_count = 0
+    for nt in seq:
+        if nt == "G" or nt == "C":
+            s_count += 1
+    return s_count/len(seq)
 
+for i in range(len(seq)-w+1):
+    s = seq[i:i+w]
+    print(f'{i} {s} {gc(s):.4f}')
 
 """
 0 ACGACGCAGGA 0.6364
