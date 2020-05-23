@@ -9,10 +9,12 @@ import math
 # 1. read_fasta: read fasta file
 # 2. gc: count gc ratio
 # 3. randseq: generate random sequence with specific gc ratio
-# 4. kdscore: calculate kd score in a window
-# 5. translation: translate nucleotide sequence to amino aci sequence
-# 6. skew: calculate gc-skew(g and c are over or under abundant)
-# 7. entropy: calculate Shannon's entropy in the sequence
+# 4. hydro: calculate hydropobicity score in kd, is, or os (dict)
+# 5. kdscore: calculate kd score in a window (elif)
+# 6. translation: translate nt to aa (dict)
+# 7. trans_elif: translate nt to aa (elif)
+# 8. skew: calculate gc-skew(g and c are over or under abundant)
+# 9. entropy: calculate Shannon's entropy in the sequence (dict)
 
 def read_fasta(filename):
 	name = None
@@ -62,6 +64,36 @@ def randseq(l, gc):
 			else:       seq.append("T")
 	return ''.join(seq)
 
+kdscale = { 'A':1.8,'R':-4.5,'N':-3.5,'D':-3.5,'C':2.5,
+	   'Q':-3.5,'E':-3.5,'G':-0.4,'H':-3.2,'I': 4.5,
+	   'L': 3.8,'K':-3.9,'M': 1.9,'F': 2.8,'P':-1.6,
+	   'S':-0.8,'T':-0.7,'W':-0.9,'Y':-1.3,'V': 4.2 }
+
+isscale = { 'I':-0.31,'L':-0.56,'F':-1.13,'V':0.07,'M':-0.23,
+	   'P':0.45,'W':-1.85,'H': 0.17,'T':0.14,'E':-0.01,
+	   'Q':0.58,'C':-0.24,'Y':-0.94,'A':0.17,'S': 0.13,
+	   'N':0.42,'D':-0.07,'R': 0.81,'G':0.01,'K': 0.99 }
+
+osscale = { 'I':-1.12,'L':-1.25,'F':-1.71,'V':-0.46,'M':-0.67,
+	   'P':0.14,'W':-2.09,'H': 0.11,'T':0.25,'E': 0.11,
+	   'Q':0.77,'C':-0.02,'Y':-0.71,'A':0.50,'S':0.46,
+	   'N':0.85,'D': 0.43,'R': 1.81,'G':1.15,'K':2.80 }
+
+def hydro(protein, method):
+	assert(method == 'kd' or method == 'is' or method == 'os')
+	hydro_score = 0
+	if method == 'kd':
+		scale = kdscale
+	elif method == 'is':
+		scale = isscale
+	elif method == 'os':
+		scale = osscale
+
+	for aa in protein:
+		if aa == '*': continue
+		hydro_score += scale[aa]
+	return hydro_score
+
 def kdscore(window):
 	kd = 0
 	for aa in window:
@@ -88,7 +120,26 @@ def kdscore(window):
 	#print(window, kd)
 	return kd/len(window)
 
+trans = {'ATG':'M', 'TTT':'F', 'TTC':'F', 'TTA':'L', 'TTG':'L', 'CTT':"L",\
+ 'CTC':'L', 'CTA':'L', 'CTG':'L', 'ATT':'I', 'ATC':'I', 'ATA':'I', 'GTT':'V',\
+ 'GTC':'V', 'GTA':'V', 'GTG':'V', 'TCT':'S', 'TCC':'S', 'TCA':'S', 'TCG':'S',\
+ 'CCT':'P', 'CCC':'P', 'CCA':'P', 'CCG':'P', 'ACT':'T', 'ACC':'T', 'ACA':'T',\
+ 'ACG':'T', 'GCT':'A', 'GCC':'A', 'GCA':'A', 'GCG':'A', 'TAT':'Y', 'TAC':'Y',\
+ 'CAT':'H', 'CAC':'H', 'CAA':'Q', 'CAG':'Q', 'AAT':'N', 'AAC':'N', 'AAA':'K',\
+ 'AAG':'K', 'GAT':'D', 'GAC':'D', 'GAA':'E', 'GAG':'E', 'TGT':'C', 'TGC':'C',\
+ 'TGG':'W', 'CGT':'R', 'CGC':'R', 'CGA':'R', 'CGG':'R', 'AGT':'S', 'AGC':'S',\
+ 'AGA':'R', 'AGG':'R', 'GGT':'G', 'GGC':'G', 'GGA':'G', 'GGG':'G', 'TGA':'*',\
+ 'TAA':'*', 'TAG':'*'}
 def translation(sequence):
+	prot = []
+	assert(len(sequence) % 3 == 0)
+	for i in range(0, len(sequence)-3+1, 3):
+		codon = sequence[i:i+3]
+		if codon not in trans: prot.append('X')
+		prot.append(trans[codon])
+	return ''.join(prot)
+
+def trans_elif(sequence):
 	prot = []
 	assert(len(sequence) % 3 == 0)
 	for i in range(0, len(sequence)-3+1, 3):
@@ -155,23 +206,40 @@ def skew(seq):
 			c += 1
 	return (g - c)/(g + c)
 
+def entropy(seq):
+	count = {'A':0, 'C':0, 'G':0, 'T':0}
+	for nt in win:
+		if   nt == 'A': count['A'] += 1
+		elif nt == 'C': count['C'] += 1
+		elif nt == 'G': count['G'] += 1
+		elif nt == 'T': count['T'] += 1
 
+	total = count['A'] + count['C'] + count['G'] + count['T']
+	h = 0
+	pa, pc, pg, pt = count['A']/total, count['C']/total, count['G']/total, count['T']/total
+
+	if count['A'] != 0: h -= pa * math.log2(pa)
+	if count['C'] != 0: h -= pc * math.log2(pc)
+	if count['G'] != 0: h -= pg * math.log2(pg)
+	if count['T'] != 0: h -= pt * math.log2(pt)
+	return h
+
+"""
 def entropy(seq):
 	h = 0
-	a = 0
-	c = 0
-	g = 0
-	t = 0
+	a, c, g, t = 0, 0, 0, 0
 	for nt in seq:
 		if   nt == 'A': a += 1
 		elif nt == 'C': c += 1
 		elif nt == 'G': g += 1
 		elif nt == 'T': t += 1
-	count = a + c + g + t
+	total = a + c + g + t
+	pa, pc, pg, pt = a/total, c/total, g/total, t/total
 	if count == 0:
 		return None
-	if a > 0: h -= (a/count) * math.log2(a/count)
-	if c > 0: h -= (c/count) * math.log2(c/count)
-	if g > 0: h -= (g/count) * math.log2(g/count)
-	if t > 0: h -= (t/count) * math.log2(t/count)
+	if a > 0: h -= pa * math.log2(pa)
+	if c > 0: h -= pc * math.log2(pc)
+	if g > 0: h -= pg * math.log2(pg)
+	if t > 0: h -= pt * math.log2(pt)
 	return h
+"""
